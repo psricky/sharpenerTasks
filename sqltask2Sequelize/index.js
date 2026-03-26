@@ -3,6 +3,11 @@ const app=express()
 
 const db=require('./utils/db')
 
+app.use(express.json());
+const studentRoute=require('./routes/studentRouter')
+app.use('/students',studentRoute)
+
+
 const studentModel=require('./models/students')
 
 db.sync({force:false}).then(()=>{
