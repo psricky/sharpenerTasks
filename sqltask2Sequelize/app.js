@@ -7,7 +7,10 @@ app.use(express.json());
 
 require('./models/index')
 
-const studentRoute=require('./routes/studentRouter')
+const studentRoute=require('./routes/studentRoute')
+const courseRoute=require('./routes/courseRoute')
+
+app.use('/courses',courseRoute)
 app.use('/students',studentRoute)
 
 

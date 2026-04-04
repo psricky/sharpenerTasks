@@ -1,6 +1,8 @@
 const Student=require('./students');
 const Department=require('./department');
 const IdentityCard=require('./identityCard');
+const StudentCourses=require('./studentCourses');
+const Courses=require('./courses');
 
 
 Department.hasMany(Student,{
@@ -17,8 +19,16 @@ IdentityCard.belongsTo(Student,{
     foreignKey:'studentId'
 });
 
+Student.belongsToMany(Courses,{
+    through:StudentCourses
+});
+Courses.belongsToMany(Student,{
+    through:StudentCourses
+});
 module.exports={
     Student,
     Department,
-    IdentityCard
+    IdentityCard,
+    Courses,
+    StudentCourses
 }
