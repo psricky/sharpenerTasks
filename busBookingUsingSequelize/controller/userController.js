@@ -1,6 +1,8 @@
 const db=require('../utils/db')
 const User=require('../models/users');
 const { where } = require('sequelize');
+const { Bookings } = require('../models');
+const Bus = require('../models/buses');
 
 const addEntry=async (req,res)=>{
     try {
@@ -11,7 +13,7 @@ const addEntry=async (req,res)=>{
             email:email
         });
 
-        res.status(201).send(`User with name ${name} created`)
+        res.status(201).json(user)
 
     }catch(error){
         console.log(error)
@@ -50,8 +52,28 @@ const deleteUser=async(req,res)=>{
         return res.status(500).send('Users cannot be deleted');
     }
 }
+
+const getUserBookingsWithBusInfo=async(req,res)=>{
+    try {
+        const {id}=req.params
+        const userBookings= await Bookings.findAll({
+            where:{userId: id},
+            attributes: {
+                exclude: ['createdAt', 'updatedAt', 'userId', 'busId']
+            },
+            include:[{model:Bus,attributes:['busNumber']}]
+        });
+        res.status(200).json(userBookings)
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Unable to fetch user bookings');
+    }
+}
+
+
 module.exports={
     addEntry,
     getUsers,
-    deleteUser
+    deleteUser,
+    getUserBookingsWithBusInfo
 }

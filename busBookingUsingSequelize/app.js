@@ -10,8 +10,10 @@ const paymentModel=require('./models/payments')
 
 const userRoute=require('./routes/userRoute')
 const busRoute=require('./routes/busRoute')
+const bookingRoute=require('./routes/bookingRoute')
 app.use('/users',userRoute)
 app.use('/buses',busRoute)
+app.use('/bookings',bookingRoute)
 
 
 db.sync({force:false}).then(()=>{

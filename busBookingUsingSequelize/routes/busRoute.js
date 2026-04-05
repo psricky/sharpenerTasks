@@ -6,5 +6,7 @@ const busController=require('../controller/busController')
 router.post('/add',busController.addBus)
 router.get('/available/:seats',busController.getBusesGreaterThanSpecifiedSeats)
 //router.delete('/delete/:id',userController.deleteUser)
+router.delete('/delete/:id',busController.deleteBusEntry)
+router.get('/:id/bookings',busController.getBusBookingsWithUserInfo)
 
 module.exports=router
