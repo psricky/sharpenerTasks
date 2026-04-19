@@ -1,6 +1,6 @@
-const form = document.getElementById('form')
+const signupform = document.getElementById('signupform')
 const url = "http://localhost:3000"
-form.addEventListener('submit', async (e) => {
+signupform.addEventListener('submit', async (e) => {
     e.preventDefault()
     const username = document.getElementById('username').value
     const email = document.getElementById('email').value
@@ -17,5 +17,25 @@ form.addEventListener('submit', async (e) => {
         console.log(err)
     }
 })
+const signinform=document.getElementById('signinform')
+signinform.addEventListener('submit', async (e) => {
+    e.preventDefault()
+   
+    const email = document.getElementById('email').value
+    const password = document.getElementById('password').value
+    
+    try {
+       const res= await axios.post(`${url}/user/signin`, {
+            email,
+            password
+        })
+        console.log(res)
+        alert('User logged in successfully')
+    } catch (err) {
+        console.log(err)
+        alert('Invalid user or password')
+    }
+})
+
 
 

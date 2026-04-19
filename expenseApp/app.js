@@ -5,7 +5,7 @@ const userRoute=require('./routes/userRoute')
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
-app.use('/',userRoute)
+app.use('/user',userRoute)
 app.use(express.static('public', {index: 'index.html'}));
 
 db.sync().then(()=>{
