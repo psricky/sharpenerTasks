@@ -1,5 +1,5 @@
 const NewUsers = require("../models/user");
-
+const bcrypt = require('bcrypt')
 const userEntry = async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -9,6 +9,7 @@ const userEntry = async (req, res) => {
                 message: "Fields are mandatory"
             })
         }
+
         const user = await NewUsers.findOne({
             where: {
                 email: email
@@ -20,12 +21,16 @@ const userEntry = async (req, res) => {
                 message: "user already exists"
             })
         }
-        const newEntry = await NewUsers.create({ username, email, password });
-        return res.status(201).json({
-            success: true,
-            message: "User registered successfully",
-            data: newEntry
-        })
+
+        const saltrounds = 10
+        const hash= await bcrypt.hash(password, saltrounds);
+            const newEntry = await NewUsers.create({ 
+                username: username, email: email, password: hash 
+            });
+            return res.status(201).json({
+                success: true,
+                message: "User registered successfully"
+            })
 
     } catch (error) {
         console.log(error)
@@ -50,22 +55,24 @@ const userLogin = async (req, res) => {
                 email: email
             }
         })
-        if (!user) return res.status(404).json({
+        if(!user) return res.status(404).json({
+            success: false,
             message: 'User not found'
         })
-        if (user.password === password) {
-            return res.status(200).
-                json({
-                    message: 'User login successful',
-                    success: true
-                })
-        } else {
-            return res.status(401).json({
-                message: 'User not authorized'
+        const result=await bcrypt.compare(password, user.password);
+        if (!result) {
+            res.status(401).json({
+                success: false,
+                message: "Invalid password"
             })
-        }
+            }
+            
+            return res.status(200).json({
+                    success: true,
+                    message: 'User logged in successfully'
+                })
 
-    } catch (error) {
+        } catch (error) {
         console.log(error)
         return res.status(500).json({
             success: false,
