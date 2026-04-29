@@ -15,10 +15,6 @@ console.log(generateMeetLink()); // Example output: meet.google.com/abc-defg-hij
 const bookingEntry=async(req,res)=>{
     try {
          const {name,email,slotId}=req.body;
-        // const slot=await Slot.findByPk(slotId)
-        // if(slot.availableSlots<=0){
-        //     return res.status(400).send('No slots available')
-        // }
         const link = generateMeetLink();
         const newBooking=await Meeting.create({name,email,link,slotId});
         const slot=await Slot.findOne({
