@@ -1,4 +1,5 @@
 const NewUsers = require("../models/user");
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt')
 const userEntry = async (req, res) => {
     try {
@@ -40,6 +41,13 @@ const userEntry = async (req, res) => {
         });
     }
 }
+function generateToken(user) {
+    const payload = {
+        userId: user.id,
+        email: user.email
+    };
+    return jwt.sign(payload, 'secretkey', { expiresIn: '1h' });
+}
 
 const userLogin = async (req, res) => {
     try {
@@ -59,7 +67,7 @@ const userLogin = async (req, res) => {
             success: false,
             message: 'User not found'
         })
-        const result=await bcrypt.compare(password, user.password);
+        const result=await bcrypt.compare(password, user.password); // returns a boolean value
         if (!result) {
             res.status(401).json({
                 success: false,
@@ -69,8 +77,10 @@ const userLogin = async (req, res) => {
             
             return res.status(200).json({
                     success: true,
-                    message: 'User logged in successfully'
+                    message: 'User logged in successfully',
+                    token: generateToken(user)
                 })
+// userid ani chahidi hai, email nai
 
         } catch (error) {
         console.log(error)

@@ -1,4 +1,5 @@
 const Expense=require('../models/expense')
+const NewUsers=require('../models/user')
 const addExpense=async(req,res)=>{
     try {
         const {amount,description,category}=req.body
@@ -8,7 +9,8 @@ const addExpense=async(req,res)=>{
                 message:"Fields are mandatory"
             })
         }
-        const newExpense=await Expense.create({amount,description,category})
+        const userId=req.user.id
+        const newExpense=await Expense.create({amount:amount,description:description,category:category,userId:userId})
         return res.status(201).json({
             success:true,
             message:"Expense added successfully"
@@ -23,7 +25,8 @@ const addExpense=async(req,res)=>{
 }
 const getExpenses=async(req,res)=>{
     try {
-        const expenses=await Expense.findAll()
+        const userId=req.user.id
+        const expenses=await Expense.findAll({where:{userId:userId}})
         return res.status(200).json({
             success:true,
             data:expenses
@@ -36,7 +39,33 @@ const getExpenses=async(req,res)=>{
         })
     }
 }
+const deleteExpense=async(req,res)=>{
+    try {
+        const expenseId=req.params.id
+        const userId=req.user.id
+        const expense=await Expense.findOne({where:{id:expenseId,userId:userId}})
+        if(!expense){
+            return res.status(404).json({
+                success:false,
+                message:"Expense not found"
+            })
+        }
+        await expense.destroy()
+        return res.status(200).json({
+            success:true,
+            message:"Expense deleted successfully"
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            success:false,
+            message:"Internal server error"
+        })
+    }
+}
+
 module.exports={
     addExpense,
-    getExpenses
+    getExpenses,
+    deleteExpense
 }
