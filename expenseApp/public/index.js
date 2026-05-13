@@ -1,6 +1,6 @@
 
 window.addEventListener("DOMContentLoaded", async () => {
-    if(localStorage.getItem("isLoggedIn") === "true") {
+    if (localStorage.getItem("isLoggedIn") === "true") {
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("expenseSection").style.display = "block";
         await loadExpenses();
@@ -23,13 +23,13 @@ document.getElementById("loginForm").addEventListener("submit", async function (
         const credentials = { email, password };
 
         const response = await axios.post("http://localhost:3000/user/login", credentials);
-        
+
         localStorage.setItem("isLoggedIn", true);
         localStorage.setItem("token", response.data.token);
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("expenseSection").style.display = "block";
         await loadExpenses();
-       
+
     } catch (error) {
         console.error("Login failed:", error);
     }
@@ -66,7 +66,7 @@ async function loadExpenses() {
         headers: {
             'Authorization': `${localStorage.getItem("token")}`
         }
-    }); 
+    });
 
     const table = document.getElementById("expenseTable");
 
@@ -84,7 +84,7 @@ async function loadExpenses() {
         </tr>
         `;
     });
-    
+
 }
 const deleteExpense = async (id) => {
     try {
@@ -98,3 +98,58 @@ const deleteExpense = async (id) => {
         console.error("Error deleting expense:", error);
     }
 };
+
+document.getElementById("premiumBtn").onclick = async function () {
+
+    const cashfree = Cashfree({
+        mode: "sandbox",
+    });
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert("Please login to proceed with payment.");
+            return;
+        }
+        const response = await fetch('http://localhost:3000/purchase/premium', {
+            method: 'POST',
+            headers: {
+                'Authorization': token,
+                'Content-Type': 'application/json'
+            },
+        });
+        const data = await response.json();
+        const paymentSessionId = data.paymentSessionId;
+        let checkoutOptions = {
+            paymentSessionId: paymentSessionId,
+            redirectTarget: "_modal",
+        };
+        const result = await cashfree.checkout(checkoutOptions);
+        if (result.error) {
+            console.error("Checkout error:", result.error);
+        }
+        if (result.redirect) {
+            console.log("Redirecting to:", result.redirect);
+        }
+        if (result.paymentDetails) {
+            console.log("Payment details:", result.paymentDetails.paymentMessage);
+            const response1 = await fetch(`http://localhost:3000/purchase/payment-status/${data?.orderId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': token,
+                    'Content-Type': 'application/json'
+                },
+            });
+            const data1 = await response1.json();
+            if (data1.paymentStatus === "SUCCESS") {
+                alert("Payment successful! You are now a premium member.");
+
+            } else {
+                alert("Payment failed. Please try again.");
+            }
+        }
+
+    } catch (error) {
+        console.error("Error occurred:", error);
+    }
+};
+

@@ -7,11 +7,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login + Expense Tracker</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 </head>
 
 <body>
   <!-- ================= LOGIN PAGE ================= -->
-  <div class="card" id="loginSection">
+  
+  <div class="login-box" id="loginSection">
 
     <h2>User Login</h2>
 
@@ -28,14 +30,21 @@
       </div>
 
       <button type="submit">Login</button>
-
+      <button class="signup-btn">Sign Up</button>
+      
     </form>
+    
   </div>
+
   <!-- ================= EXPENSE APP ================= -->
   <div class="card" id="expenseSection">
     <div style="display: flex;justify-content: space-between;">
+      
       <h2>Expense Tracker</h2>
-      <button onclick="logout()">Logout</button>
+      <div style="display: flex;gap: 5px;">
+         <button id="premiumBtn" class="premium-btn">Buy Premium Membership</button>
+        <button onclick="logout()">Logout</button>
+      </div>
     </div>
 
     
@@ -83,6 +92,7 @@
 
   </div>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
   <script src="index.js"></script>
 </body>
 
