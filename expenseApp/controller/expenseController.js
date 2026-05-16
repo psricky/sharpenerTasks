@@ -1,3 +1,4 @@
+const { Sequelize } = require('sequelize')
 const Expense=require('../models/expense')
 const NewUsers=require('../models/user')
 const addExpense=async(req,res)=>{
@@ -31,6 +32,12 @@ const getExpenses=async(req,res)=>{
             success:true,
             data:expenses
         })
+        if (!expenses) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -63,6 +70,8 @@ const deleteExpense=async(req,res)=>{
         })
     }
 }
+
+
 
 module.exports={
     addExpense,

@@ -10,6 +10,10 @@ NewUsers.hasMany(Expense, {
 Expense.belongsTo(NewUsers, {
     foreignKey: 'userId'
 });
+NewUsers.hasOne(Order, {
+    foreignKey: 'userId',
+    onDelete: 'CASCADE'
+});
 Order.belongsTo(NewUsers, {
     foreignKey: 'userId'
 });

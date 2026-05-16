@@ -3,6 +3,9 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (localStorage.getItem("isLoggedIn") === "true") {
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("expenseSection").style.display = "block";
+        document.getElementById("premiumStatusText").style.display = "none";
+
+        await getUserDetails();
         await loadExpenses();
     }
 });
@@ -10,8 +13,12 @@ window.addEventListener("DOMContentLoaded", async () => {
 const logout = () => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("token");
+    localStorage.removeItem("isPremium");
     document.getElementById("loginSection").style.display = "block";
     document.getElementById("expenseSection").style.display = "none";
+    const list = document.getElementById("leaderboard");
+    if (list)
+        list.remove();
 }
 document.getElementById("loginForm").addEventListener("submit", async function (e) {
     try {
@@ -28,6 +35,8 @@ document.getElementById("loginForm").addEventListener("submit", async function (
         localStorage.setItem("token", response.data.token);
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("expenseSection").style.display = "block";
+
+        await getUserDetails();
         await loadExpenses();
 
     } catch (error) {
@@ -142,14 +151,62 @@ document.getElementById("premiumBtn").onclick = async function () {
             const data1 = await response1.json();
             if (data1.paymentStatus === "SUCCESS") {
                 alert("Payment successful! You are now a premium member.");
+                await getUserDetails();
 
             } else {
                 alert("Payment failed. Please try again.");
             }
+
         }
 
     } catch (error) {
         console.error("Error occurred:", error);
     }
 };
+
+const getUserDetails = async () => {
+
+    const response1 = await axios.get("http://localhost:3000/user/get-user", {
+        headers: {
+            'Authorization': `${localStorage.getItem("token")}`
+        }
+    });
+    if (response1.data.data?.order?.status === "SUCCESS") {
+        localStorage.setItem("isPremium", true);
+        document.getElementById("premiumBtn").style.display = "none";
+        document.getElementById("premiumStatusText").style.display = "block";
+    }
+
+}
+
+
+document.getElementById("leaderboardBtn").addEventListener("click", async (e) => {
+
+    e.preventDefault();
+    const list = document.getElementById("leaderboard");
+    if (list)
+        list.remove();
+    try {
+        const response = await axios.get("http://localhost:3000/premium/show-leaderboard", {
+            headers: {
+                'Authorization': `${localStorage.getItem("token")}`
+            }
+        });
+
+        const ul = document.createElement('ul');
+        ul.setAttribute('id', 'leaderboard');
+        for (const user of response.data.data) {
+            const listItem = document.createElement("li");
+            listItem.textContent = `Username: ${user.username}, Total Expense: ${user.totalExpense}`;
+            ul.appendChild(listItem);
+        }
+
+        document.getElementById("expenseSection").appendChild(ul);
+
+    } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+    }
+});
+
+
 

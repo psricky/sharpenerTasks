@@ -43,6 +43,7 @@
       <h2>Expense Tracker</h2>
       <div style="display: flex;gap: 5px;">
          <button id="premiumBtn" class="premium-btn">Buy Premium Membership</button>
+         <h2 id="premiumStatusText">Premium Member</h2>
         <button onclick="logout()">Logout</button>
       </div>
     </div>
@@ -89,7 +90,7 @@
 
       <tbody id="expenseTable"></tbody>
     </table>
-
+    <button type="button" id="leaderboardBtn">Show Leaderboard</button>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
