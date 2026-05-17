@@ -1,5 +1,6 @@
 
 window.addEventListener("DOMContentLoaded", async () => {
+    document.getElementById("signupSection").style.display = "none";
     if (localStorage.getItem("isLoggedIn") === "true") {
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("expenseSection").style.display = "block";
@@ -34,6 +35,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
         localStorage.setItem("isLoggedIn", true);
         localStorage.setItem("token", response.data.token);
         document.getElementById("loginSection").style.display = "none";
+         document.getElementById("premiumStatusText").style.display = "none";
         document.getElementById("expenseSection").style.display = "block";
 
         await getUserDetails();
@@ -44,6 +46,32 @@ document.getElementById("loginForm").addEventListener("submit", async function (
     }
 });
 
+document.getElementById("signupBtn").addEventListener("click", async function (e) {
+    try {
+        e.preventDefault();
+        e.stopPropagation();
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("signupSection").style.display = "block";
+    } catch (error) {
+        console.error("Error showing signup form:", error);
+    }
+});
+document.getElementById("signupForm").addEventListener("submit", async function (e) {
+    try {
+        // successful signup
+        e.preventDefault();
+        const username = document.getElementById("username").value;
+        const email = document.getElementById("signupEmail").value;
+        const password = document.getElementById("signuppassword").value;
+        const userData = { username, email, password };
+        const response = await axios.post("http://localhost:3000/user/signup", userData);
+        document.getElementById("signupSection").style.display = "none";
+        document.getElementById("loginSection").style.display = "block";
+        alert("Signup successful! Please login to continue.");
+    } catch (error) {
+        console.error("Signup failed:", error);
+    }
+});
 document.getElementById("expenseForm").addEventListener("submit", async function (e) {
     try {
         e.preventDefault();

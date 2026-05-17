@@ -12,7 +12,7 @@
 
 <body>
   <!-- ================= LOGIN PAGE ================= -->
-  
+
   <div class="login-box" id="loginSection">
 
     <h2>User Login</h2>
@@ -30,25 +30,50 @@
       </div>
 
       <button type="submit">Login</button>
-      <button class="signup-btn">Sign Up</button>
-      
-    </form>
-    
-  </div>
+      <button class="signup-btn" id="signupBtn">Sign Up</button>
 
+    </form>
+
+  </div>
+  <!-- ================= SIGN UP PAGE ================= -->
+
+  <div class="login-box" id="signupSection">
+
+    <h2>User Sign Up</h2>
+
+    <form id="signupForm">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="username" required>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="signupEmail" required>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signuppassword" required>
+      </div>
+
+      <button type="submit">Submit</button>
+
+    </form>
+
+  </div>
   <!-- ================= EXPENSE APP ================= -->
   <div class="card" id="expenseSection">
     <div style="display: flex;justify-content: space-between;">
-      
+
       <h2>Expense Tracker</h2>
       <div style="display: flex;gap: 5px;">
-         <button id="premiumBtn" class="premium-btn">Buy Premium Membership</button>
-         <h2 id="premiumStatusText">Premium Member</h2>
+        <button id="premiumBtn" class="premium-btn">Buy Premium Membership</button>
+        <h2 id="premiumStatusText">Premium Member</h2>
         <button onclick="logout()">Logout</button>
       </div>
     </div>
 
-    
+
     <form id="expenseForm">
 
       <div class="form-group">
