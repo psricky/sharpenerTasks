@@ -19,7 +19,7 @@ app.use('/expense',expenseRoute)
 app.use('/purchase',purchaseRoute)
 app.use('/premium',premiumRoute)
 
-db.sync().then(()=>{
+db.sync({alter:true}).then(()=>{
     app.listen(3000, () => {
         console.log('Server connected to port')
     });

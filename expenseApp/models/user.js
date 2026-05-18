@@ -19,6 +19,10 @@ const NewUsers=sequelize.define('NewUsers',{
         type:DataTypes.STRING(255),
         allowNull:false 
     },
+    totalExpenses:{
+        type:DataTypes.FLOAT,
+        allowNull:true
+    }
     
 });
 

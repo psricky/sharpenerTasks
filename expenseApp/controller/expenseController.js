@@ -11,7 +11,12 @@ const addExpense=async(req,res)=>{
             })
         }
         const userId=req.user.id
-        const newExpense=await Expense.create({amount:amount,description:description,category:category,userId:userId})
+        const newExpense=await Expense.create({
+            amount:amount,description:description,category:category,userId:userId
+        })
+        // Update the user's total expenses
+        const user=await NewUsers.findByPk(userId)
+        await user.update({totalExpenses: user.totalExpenses + parseFloat(amount)})
         return res.status(201).json({
             success:true,
             message:"Expense added successfully"
@@ -72,9 +77,9 @@ const deleteExpense=async(req,res)=>{
 }
 
 
-
 module.exports={
     addExpense,
     getExpenses,
-    deleteExpense
+    deleteExpense,
+
 }

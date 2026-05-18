@@ -225,7 +225,7 @@ document.getElementById("leaderboardBtn").addEventListener("click", async (e) =>
         ul.setAttribute('id', 'leaderboard');
         for (const user of response.data.data) {
             const listItem = document.createElement("li");
-            listItem.textContent = `Username: ${user.username}, Total Expense: ${user.totalExpense}`;
+            listItem.textContent = `Username: ${user.username}, Total Expenses: ${user.totalExpenses}`;
             ul.appendChild(listItem);
         }
 
