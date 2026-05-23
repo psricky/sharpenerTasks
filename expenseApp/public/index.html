@@ -11,6 +11,7 @@
 </head>
 
 <body>
+  
   <!-- ================= LOGIN PAGE ================= -->
 
   <div class="login-box" id="loginSection">
@@ -88,7 +89,7 @@
 
       <div class="form-group">
         <label>Category</label>
-        <select id="category" required>
+        <select id="category" >
           <option value="">Select Category</option>
           <option>Food</option>
           <option>Petrol</option>
@@ -117,6 +118,16 @@
     </table>
     <button type="button" id="leaderboardBtn">Show Leaderboard</button>
   </div>
+ 
+  <form id="geminiForm" style="padding: 2rem; display: none;">
+     <h1>Ask Gemini</h1>
+    <div class="form-group">
+      <label>Question</label>
+      <input type="text" id="prompt" placeholder="Ask something..." required />
+    </div>
+    <button type="submit">Ask Gemini</button>
+  </form>
+  <p id="response"></p>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
   <script src="index.js"></script>

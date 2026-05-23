@@ -5,6 +5,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("expenseSection").style.display = "block";
         document.getElementById("premiumStatusText").style.display = "none";
+        document.getElementById("geminiForm").style.display = "block";
+       
 
         await getUserDetails();
         await loadExpenses();
@@ -17,14 +19,16 @@ const logout = () => {
     localStorage.removeItem("isPremium");
     document.getElementById("loginSection").style.display = "block";
     document.getElementById("expenseSection").style.display = "none";
+    document.getElementById("geminiForm").style.display = "none";
     const list = document.getElementById("leaderboard");
     if (list)
         list.remove();
 }
 document.getElementById("loginForm").addEventListener("submit", async function (e) {
+    document.getElementById("geminiForm").style.display = "block";
     try {
         e.preventDefault();
-
+        
         // successful login
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
@@ -35,7 +39,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
         localStorage.setItem("isLoggedIn", true);
         localStorage.setItem("token", response.data.token);
         document.getElementById("loginSection").style.display = "none";
-         document.getElementById("premiumStatusText").style.display = "none";
+        document.getElementById("premiumStatusText").style.display = "none";
         document.getElementById("expenseSection").style.display = "block";
 
         await getUserDetails();
@@ -236,5 +240,19 @@ document.getElementById("leaderboardBtn").addEventListener("click", async (e) =>
     }
 });
 
-
+document.getElementById("geminiForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const prompt = document.getElementById("prompt").value;
+    try {
+        const response = await axios.post("http://localhost:3000/user/gemini/ask", { prompt }, {
+            headers: {
+                'Authorization': `${localStorage.getItem("token")}`
+            }
+        });
+        document.getElementById("response").textContent = response.data.response;
+    } catch (error) {
+        console.error("Error asking Gemini:", error);
+        document.getElementById("response").textContent = "Error occurred while asking Gemini.";
+    }
+});
 

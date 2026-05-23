@@ -5,10 +5,14 @@ const db=require('./config/db')
 require('./models')
 require('dotenv').config();
 
+
+
 const userRoute=require('./routes/userRoute')
 const expenseRoute=require('./routes/expenseRoute')
 const purchaseRoute=require('./routes/purchaseRoute')
 const premiumRoute=require('./routes/premiumRoute')
+
+
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
