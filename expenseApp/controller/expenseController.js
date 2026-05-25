@@ -2,8 +2,11 @@ const { Sequelize } = require('sequelize')
 const Expense = require('../models/expense')
 const NewUsers = require('../models/user')
 const { GoogleGenAI } = require('@google/genai');
+const sequelize=require('../config/db')
 const addExpense = async (req, res) => {
+    const t = await sequelize.transaction();
     try {
+        
         const { amount, description } = req.body
         if (!amount || !description) {
             return res.status(400).json({
@@ -25,15 +28,17 @@ const addExpense = async (req, res) => {
         const userId = req.user.id
         const newExpense = await Expense.create({
             amount: amount, description: description, userId: userId, category: responseFromAi.text
-        })
+        }, { transaction: t })
         // Update the user's total expenses
         const user = await NewUsers.findByPk(userId)
-        await user.update({ totalExpenses: user.totalExpenses + parseFloat(amount) })
+        await user.update({ totalExpenses: user.totalExpenses + parseFloat() }, { transaction: t })
+        await t.commit()
         return res.status(201).json({
             success: true,
             message: "Expense added successfully"
         })
     } catch (error) {
+        await t.rollback()
         console.log(error)
         return res.status(500).json({
             success: false,
@@ -65,21 +70,24 @@ const getExpenses = async (req, res) => {
 }
 const deleteExpense = async (req, res) => {
     try {
+        const t = await Sequelize.transaction();
         const expenseId = req.params.id
         const userId = req.user.id
-        const expense = await Expense.findOne({ where: { id: expenseId, userId: userId } })
+        const expense = await Expense.findOne({ where: { id: expenseId, userId: userId }, transaction: t })
         if (!expense) {
             return res.status(404).json({
                 success: false,
                 message: "Expense not found"
             })
         }
-        await expense.destroy()
+        await expense.destroy({ transaction: t })
+        await t.commit()
         return res.status(200).json({
             success: true,
             message: "Expense deleted successfully"
         })
     } catch (error) {
+        await t.rollback()
         console.log(error)
         return res.status(500).json({
             success: false,
