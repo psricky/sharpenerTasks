@@ -21,7 +21,7 @@ const NewUsers=sequelize.define('NewUsers',{
     },
     totalExpenses:{
         type:DataTypes.FLOAT,
-        allowNull:true
+        defaultValue:0
     }
     
 });

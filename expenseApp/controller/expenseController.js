@@ -31,7 +31,7 @@ const addExpense = async (req, res) => {
         }, { transaction: t })
         // Update the user's total expenses
         const user = await NewUsers.findByPk(userId)
-        await user.update({ totalExpenses: user.totalExpenses + parseFloat() }, { transaction: t })
+        await user.update({ totalExpenses: user.totalExpenses + parseFloat(amount) }, { transaction: t })
         await t.commit()
         return res.status(201).json({
             success: true,
@@ -69,8 +69,9 @@ const getExpenses = async (req, res) => {
     }
 }
 const deleteExpense = async (req, res) => {
+    const t = await sequelize.transaction();
     try {
-        const t = await Sequelize.transaction();
+        
         const expenseId = req.params.id
         const userId = req.user.id
         const expense = await Expense.findOne({ where: { id: expenseId, userId: userId }, transaction: t })
@@ -80,7 +81,9 @@ const deleteExpense = async (req, res) => {
                 message: "Expense not found"
             })
         }
-        await expense.destroy({ transaction: t })
+        await expense.destroy()
+        const user = await NewUsers.findByPk(userId)
+        await user.update({ totalExpenses: user.totalExpenses - parseFloat(expense.amount) }, { transaction: t })
         await t.commit()
         return res.status(200).json({
             success: true,
