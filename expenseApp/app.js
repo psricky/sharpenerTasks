@@ -2,10 +2,9 @@
 const express=require('express')
 const app=express()
 const db=require('./config/db')
+   
 require('./models')
 require('dotenv').config();
-
-
 
 const userRoute=require('./routes/userRoute')
 const expenseRoute=require('./routes/expenseRoute')
@@ -22,6 +21,7 @@ app.use('/user',userRoute)
 app.use('/expense',expenseRoute)
 app.use('/purchase',purchaseRoute)
 app.use('/premium',premiumRoute)
+app.use('/password',require('./routes/forgetPassword'))
 
 db.sync({alter:true}).then(()=>{
     app.listen(3000, () => {
