@@ -256,3 +256,27 @@ document.getElementById("geminiForm").addEventListener("submit", async function 
     }
 });
 
+const forgotBtn = document.getElementById("forgotBtn");
+    forgotBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        document.getElementById("loginForm").style.display = "none";
+        document.getElementById("forgotBtn").style.display = "none";
+        document.getElementById("forgotForm").style.display = "block";
+        document.getElementById("forgotSubmitBtn").addEventListener("click", async function(e){
+            e.preventDefault();
+            const email=document.getElementById("forgotEmail").value;
+            try {
+                const response = await axios.post("http://localhost:3000/password/forget-password", {email});
+                if (response.data.success) {
+                    alert(response.data.message);
+                }
+                document.getElementById("forgotForm").style.display = "none";
+                document.getElementById("loginForm").style.display = "block";
+                document.getElementById("forgotBtn").style.display = "block";
+            } catch (error) {
+                console.error("Error sending password reset email:", error);
+                alert("Error occurred while sending password reset email.");
+            }
+        });
+
+    });
