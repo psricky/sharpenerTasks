@@ -7,6 +7,10 @@ const Expense=sequelize.define('Expense',{
         primaryKey:true,    
         autoIncrement:true
     },
+    expenseCreationDate:{
+        type:DataTypes.DATE,
+        defaultValue:DataTypes.NOW
+    },
     amount:{
         type:DataTypes.FLOAT,
         allowNull:false

@@ -7,7 +7,7 @@ const addExpense = async (req, res) => {
     const t = await sequelize.transaction();
     try {
         
-        const { amount, description } = req.body
+        const { amount, description, expenseCreationDate } = req.body
         if (!amount || !description) {
             return res.status(400).json({
                 success: false,
@@ -27,7 +27,7 @@ const addExpense = async (req, res) => {
 
         const userId = req.user.id
         const newExpense = await Expense.create({
-            amount: amount, description: description, userId: userId, category: responseFromAi.text
+            amount: amount, description: description, userId: userId, expenseCreationDate: expenseCreationDate, category: responseFromAi.text
         }, { transaction: t })
         // Update the user's total expenses
         const user = await NewUsers.findByPk(userId)

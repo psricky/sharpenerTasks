@@ -1,4 +1,6 @@
 
+ var allExpenses = [];
+ var currentView = 'daily'; 
 window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("signupSection").style.display = "none";
     if (localStorage.getItem("isLoggedIn") === "true") {
@@ -12,6 +14,48 @@ window.addEventListener("DOMContentLoaded", async () => {
         await loadExpenses();
     }
 });
+
+function downloadTableAsCSV() {
+    // 1. Get the active view title for the filename (e.g., "Daily-Expenses")
+    const viewHeading = currentView.charAt(0).toUpperCase() + currentView.slice(1) + "-Expenses";
+    const filename = `${viewHeading}_${new Date().toLocaleDateString('en-GB').replace(/\//g, '-')}.csv`;
+
+    const csvRows = [];
+    
+    // 2. Grab all table headers (dynamically handles Daily vs Weekly vs Monthly headers)
+    const headers = Array.from(document.querySelectorAll("#tableHeader th"))
+                         .map(header => `"${header.innerText}"`);
+    if (headers.length === 0) return; // Safeguard if table is empty
+    csvRows.push(headers.join(","));
+
+    // 3. Grab all the data rows currently visible in the tbody
+    const rows = document.querySelectorAll("#expenseTable tr");
+    
+    rows.forEach(row => {
+        const columns = Array.from(row.querySelectorAll("td")).map(col => {
+            // Clean up text, escape quotes, and wrap in double quotes to handle commas safely
+            let data = col.innerText.replace(/"/g, '""'); 
+            return `"${data}"`;
+        });
+        
+        // Only push rows that actually have column data
+        if (columns.length > 0 && !columns[0].includes("No transactions found")) {
+            csvRows.push(columns.join(","));
+        }
+    });
+
+    // 4. Create a Blob from the CSV string and trigger a hidden download link
+    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link); // Required for Firefox
+    
+    link.click(); // Trigger the download
+    document.body.removeChild(link); // Clean up the DOM
+}
 
 const logout = () => {
     localStorage.removeItem("isLoggedIn");
@@ -83,7 +127,8 @@ document.getElementById("expenseForm").addEventListener("submit", async function
         const expense = {
             amount: document.getElementById("amount").value,
             description: document.getElementById("description").value,
-            category: document.getElementById("category").value
+            category: document.getElementById("category").value,
+            expenseCreationDate: new Date(document.getElementById("expenseCreationDate").value).toISOString()
         };
 
         await axios.post("http://localhost:3000/expense/add-expense", expense, {
@@ -112,21 +157,129 @@ async function loadExpenses() {
     const table = document.getElementById("expenseTable");
 
     table.innerHTML = "";
+    allExpenses = res.data.data; // Store the master array for filtering
+    renderView();
+    // res.data.data.forEach(exp => {
 
-    res.data.data.forEach(exp => {
-
-        table.innerHTML += `
-        <tr>
-            <td>${exp.id}</td>
-            <td>${exp.amount}</td>
-            <td>${exp.description}</td>
-            <td>${exp.category}</td>
-            <td><button onclick="deleteExpense(${exp.id})">Delete</button></td>
-        </tr>
-        `;
-    });
+    //     table.innerHTML += `
+    //     <tr>
+    //         <td>${new Date(exp.expenseCreationDate).toLocaleDateString('en-GB').replace(/\//g, '-')}</td>
+    //         <td>${exp.amount}</td>
+    //         <td>${exp.description}</td>
+    //         <td>${exp.category}</td>
+    //         <td><button onclick="deleteExpense(${exp.id})">Delete</button></td>
+    //     </tr>
+    //     `;
+    // });
 
 }
+
+// Default view
+
+// Function triggered when a user clicks a tab
+function switchView(viewType) {
+    currentView = viewType;
+   
+    // Re-render the data based on the new view selection
+    renderView();
+}
+
+function getStartOfWeek(date) {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day; 
+    return new Date(d.setDate(diff)).toLocaleDateString('en-GB').replace(/\//g, '-');
+}
+
+// The core rendering engine
+function renderView() {
+    const header = document.getElementById('tableHeader');
+    const body = document.getElementById('expenseTable');
+    
+    body.innerHTML = ""; // Clear table completely
+
+    // --- CASE 1: DAILY VIEW (Default - Single Line Items) ---
+    if (currentView === 'daily') {
+        header.innerHTML = `
+            <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Description</th>
+                <th>Category</th>
+            </tr>
+        `;
+
+        allExpenses.forEach(exp => {
+            const formattedDate = new Date(exp.expenseCreationDate).toLocaleDateString('en-GB').replace(/\//g, '-');
+            body.innerHTML += `
+                <tr>
+                    <td>${formattedDate}</td>
+                    <td>${exp.amount}</td>
+                    <td>${exp.description}</td>
+                    <td>${exp.category}</td>
+                </tr>
+            `;
+        });
+    }
+
+    // --- CASE 2: WEEKLY VIEW (Aggregated by Week) ---
+    else if (currentView === 'weekly') {
+        header.innerHTML = `
+            <tr>
+                <th>Week Starting (Sunday)</th>
+                <th>Total Expenses</th>
+            </tr>
+        `;
+
+        // Group expenses by their week start date
+        const weeklyGroups = {};
+        allExpenses.forEach(exp => {
+            const weekKey = getStartOfWeek(exp.expenseCreationDate);
+            const amount = parseFloat(exp.amount) || 0;
+            weeklyGroups[weekKey] = (weeklyGroups[weekKey] || 0) + amount;
+        });
+
+        // Render aggregated weekly rows
+        Object.keys(weeklyGroups).forEach(week => {
+            body.innerHTML += `
+                <tr>
+                    <td>Week of ${week}</td>
+                    <td><strong>${weeklyGroups[week].toFixed(2)}</strong></td>
+                </tr>
+            `;
+        });
+    }
+
+    // --- CASE 3: MONTHLY VIEW (Aggregated by Month) ---
+    else if (currentView === 'monthly') {
+        header.innerHTML = `
+            <tr>
+                <th>Month</th>
+                <th>Total Expenses</th>
+            </tr>
+        `;
+
+        // Group expenses by Month name and Year
+        const monthlyGroups = {};
+        allExpenses.forEach(exp => {
+            const dateObj = new Date(exp.expenseCreationDate);
+            const monthKey = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }); // e.g., "May 2026"
+            const amount = parseFloat(exp.amount) || 0;
+            monthlyGroups[monthKey] = (monthlyGroups[monthKey] || 0) + amount;
+        });
+
+        // Render aggregated monthly rows
+        Object.keys(monthlyGroups).forEach(month => {
+            body.innerHTML += `
+                <tr>
+                    <td>${month}</td>
+                    <td><strong>${monthlyGroups[month].toFixed(2)}</strong></td>
+                </tr>
+            `;
+        });
+    }
+}
+
 const deleteExpense = async (id) => {
     try {
         await axios.delete(`http://localhost:3000/expense/delete-expense/${id}`, {
@@ -207,6 +360,14 @@ const getUserDetails = async () => {
         localStorage.setItem("isPremium", true);
         document.getElementById("premiumBtn").style.display = "none";
         document.getElementById("premiumStatusText").style.display = "block";
+        document.getElementById("downloadReportBtn").style.display = "block";
+        document.getElementById("leaderboardBtn").style.display = "block";
+    } else {
+        localStorage.setItem("isPremium", false);
+        document.getElementById("premiumBtn").style.display = "block";
+        document.getElementById("premiumStatusText").style.display = "none";
+        document.getElementById("downloadReportBtn").style.display = "none";
+        document.getElementById("leaderboardBtn").style.display = "none";
     }
 
 }
