@@ -1,6 +1,6 @@
 
- var allExpenses = [];
- var currentView = 'daily'; 
+var allExpenses = [];
+var currentView = 'daily';
 window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("signupSection").style.display = "none";
     if (localStorage.getItem("isLoggedIn") === "true") {
@@ -8,53 +8,67 @@ window.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("expenseSection").style.display = "block";
         document.getElementById("premiumStatusText").style.display = "none";
         document.getElementById("geminiForm").style.display = "block";
-       
+
 
         await getUserDetails();
         await loadExpenses();
     }
 });
 
-function downloadTableAsCSV() {
-    // 1. Get the active view title for the filename (e.g., "Daily-Expenses")
-    const viewHeading = currentView.charAt(0).toUpperCase() + currentView.slice(1) + "-Expenses";
-    const filename = `${viewHeading}_${new Date().toLocaleDateString('en-GB').replace(/\//g, '-')}.csv`;
-
-    const csvRows = [];
-    
-    // 2. Grab all table headers (dynamically handles Daily vs Weekly vs Monthly headers)
-    const headers = Array.from(document.querySelectorAll("#tableHeader th"))
-                         .map(header => `"${header.innerText}"`);
-    if (headers.length === 0) return; // Safeguard if table is empty
-    csvRows.push(headers.join(","));
-
-    // 3. Grab all the data rows currently visible in the tbody
-    const rows = document.querySelectorAll("#expenseTable tr");
-    
-    rows.forEach(row => {
-        const columns = Array.from(row.querySelectorAll("td")).map(col => {
-            // Clean up text, escape quotes, and wrap in double quotes to handle commas safely
-            let data = col.innerText.replace(/"/g, '""'); 
-            return `"${data}"`;
+const downloadTableAsCSV = async () => {
+    try {
+        const response = await axios.get(`http://localhost:3000/expense/download-csv?range=${currentView}`, {
+            headers: {
+                'Authorization': `${localStorage.getItem("token")}`
+            }
         });
-        
-        // Only push rows that actually have column data
-        if (columns.length > 0 && !columns[0].includes("No transactions found")) {
-            csvRows.push(columns.join(","));
-        }
-    });
+        const blob = new Blob([response.data], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'expense_report.csv');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    } catch (error) {
+        console.error("Error downloading CSV:", error);
+    }
 
-    // 4. Create a Blob from the CSV string and trigger a hidden download link
-    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", filename);
-    document.body.appendChild(link); // Required for Firefox
-    
-    link.click(); // Trigger the download
-    document.body.removeChild(link); // Clean up the DOM
+    // const csvRows = [];
+
+    // // 2. Grab all table headers (dynamically handles Daily vs Weekly vs Monthly headers)
+    // const headers = Array.from(document.querySelectorAll("#tableHeader th"))
+    //     .map(header => `"${header.innerText}"`);
+    // if (headers.length === 0) return; // Safeguard if table is empty
+    // csvRows.push(headers.join(","));
+
+    // // 3. Grab all the data rows currently visible in the tbody
+    // const rows = document.querySelectorAll("#expenseTable tr");
+
+    // rows.forEach(row => {
+    //     const columns = Array.from(row.querySelectorAll("td")).map(col => {
+    //         // Clean up text, escape quotes, and wrap in double quotes to handle commas safely
+    //         let data = col.innerText.replace(/"/g, '""');
+    //         return `"${data}"`;
+    //     });
+
+    //     // Only push rows that actually have column data
+    //     if (columns.length > 0 && !columns[0].includes("No transactions found")) {
+    //         csvRows.push(columns.join(","));
+    //     }
+    // });
+
+    // // 4. Create a Blob from the CSV string and trigger a hidden download link
+    // const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
+    // const encodedUri = encodeURI(csvContent);
+    // const link = document.createElement("a");
+
+    // link.setAttribute("href", encodedUri);
+    // link.setAttribute("download", filename);
+    // document.body.appendChild(link); // Required for Firefox
+
+    // link.click(); // Trigger the download
+    // document.body.removeChild(link); // Clean up the DOM
 }
 
 const logout = () => {
@@ -72,7 +86,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
     document.getElementById("geminiForm").style.display = "block";
     try {
         e.preventDefault();
-        
+
         // successful login
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
@@ -148,17 +162,18 @@ document.getElementById("expenseForm").addEventListener("submit", async function
 
 async function loadExpenses() {
 
-    const res = await axios.get("http://localhost:3000/expense/get-expenses", {
-        headers: {
-            'Authorization': `${localStorage.getItem("token")}`
-        }
-    });
+    getPaginatedExpenses(1, 2); // Load first page with 10 items per page
+    // const res = await axios.get("http://localhost:3000/expense/get-expenses", {
+    //     headers: {
+    //         'Authorization': `${localStorage.getItem("token")}`
+    //     }
+    // });
 
-    const table = document.getElementById("expenseTable");
+    // const table = document.getElementById("expenseTable");
 
-    table.innerHTML = "";
-    allExpenses = res.data.data; // Store the master array for filtering
-    renderView();
+    // table.innerHTML = "";
+    // allExpenses = res.data.data; // Store the master array for filtering
+   // renderView();
     // res.data.data.forEach(exp => {
 
     //     table.innerHTML += `
@@ -176,109 +191,106 @@ async function loadExpenses() {
 
 // Default view
 
-// Function triggered when a user clicks a tab
+//Function triggered when a user clicks a tab
 function switchView(viewType) {
     currentView = viewType;
-   
-    // Re-render the data based on the new view selection
-    renderView();
 }
 
-function getStartOfWeek(date) {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day; 
-    return new Date(d.setDate(diff)).toLocaleDateString('en-GB').replace(/\//g, '-');
-}
+// function getStartOfWeek(date) {
+//     const d = new Date(date);
+//     const day = d.getDay();
+//     const diff = d.getDate() - day;
+//     return new Date(d.setDate(diff)).toLocaleDateString('en-GB').replace(/\//g, '-');
+// }
 
-// The core rendering engine
-function renderView() {
-    const header = document.getElementById('tableHeader');
-    const body = document.getElementById('expenseTable');
-    
-    body.innerHTML = ""; // Clear table completely
 
-    // --- CASE 1: DAILY VIEW (Default - Single Line Items) ---
-    if (currentView === 'daily') {
-        header.innerHTML = `
-            <tr>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Description</th>
-                <th>Category</th>
-            </tr>
-        `;
+// function renderView() {
+//     const header = document.getElementById('tableHeader');
+//     const body = document.getElementById('expenseTable');
 
-        allExpenses.forEach(exp => {
-            const formattedDate = new Date(exp.expenseCreationDate).toLocaleDateString('en-GB').replace(/\//g, '-');
-            body.innerHTML += `
-                <tr>
-                    <td>${formattedDate}</td>
-                    <td>${exp.amount}</td>
-                    <td>${exp.description}</td>
-                    <td>${exp.category}</td>
-                </tr>
-            `;
-        });
-    }
+//     body.innerHTML = ""; // Clear table completely
 
-    // --- CASE 2: WEEKLY VIEW (Aggregated by Week) ---
-    else if (currentView === 'weekly') {
-        header.innerHTML = `
-            <tr>
-                <th>Week Starting (Sunday)</th>
-                <th>Total Expenses</th>
-            </tr>
-        `;
+//     // --- CASE 1: DAILY VIEW (Default - Single Line Items) ---
+//     if (currentView === 'daily') {
+//         header.innerHTML = `
+//             <tr>
+//                 <th>Date</th>
+//                 <th>Amount</th>
+//                 <th>Description</th>
+//                 <th>Category</th>
+//             </tr>
+//         `;
 
-        // Group expenses by their week start date
-        const weeklyGroups = {};
-        allExpenses.forEach(exp => {
-            const weekKey = getStartOfWeek(exp.expenseCreationDate);
-            const amount = parseFloat(exp.amount) || 0;
-            weeklyGroups[weekKey] = (weeklyGroups[weekKey] || 0) + amount;
-        });
+//         allExpenses.forEach(exp => {
+//             const formattedDate = new Date(exp.expenseCreationDate).toLocaleDateString('en-GB').replace(/\//g, '-');
+//             body.innerHTML += `
+//                 <tr>
+//                     <td>${formattedDate}</td>
+//                     <td>${exp.amount}</td>
+//                     <td>${exp.description}</td>
+//                     <td>${exp.category}</td>
+//                 </tr>
+//             `;
+//         });
+//     }
 
-        // Render aggregated weekly rows
-        Object.keys(weeklyGroups).forEach(week => {
-            body.innerHTML += `
-                <tr>
-                    <td>Week of ${week}</td>
-                    <td><strong>${weeklyGroups[week].toFixed(2)}</strong></td>
-                </tr>
-            `;
-        });
-    }
+//     // --- CASE 2: WEEKLY VIEW (Aggregated by Week) ---
+//     else if (currentView === 'weekly') {
+//         header.innerHTML = `
+//             <tr>
+//                 <th>Week Starting (Sunday)</th>
+//                 <th>Total Expenses</th>
+//             </tr>
+//         `;
 
-    // --- CASE 3: MONTHLY VIEW (Aggregated by Month) ---
-    else if (currentView === 'monthly') {
-        header.innerHTML = `
-            <tr>
-                <th>Month</th>
-                <th>Total Expenses</th>
-            </tr>
-        `;
+//         // Group expenses by their week start date
+//         const weeklyGroups = {};
+//         allExpenses.forEach(exp => {
+//             const weekKey = getStartOfWeek(exp.expenseCreationDate);
+//             const amount = parseFloat(exp.amount) || 0;
+//             weeklyGroups[weekKey] = (weeklyGroups[weekKey] || 0) + amount;
+//         });
 
-        // Group expenses by Month name and Year
-        const monthlyGroups = {};
-        allExpenses.forEach(exp => {
-            const dateObj = new Date(exp.expenseCreationDate);
-            const monthKey = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }); // e.g., "May 2026"
-            const amount = parseFloat(exp.amount) || 0;
-            monthlyGroups[monthKey] = (monthlyGroups[monthKey] || 0) + amount;
-        });
+//         // Render aggregated weekly rows
+//         Object.keys(weeklyGroups).forEach(week => {
+//             body.innerHTML += `
+//                 <tr>
+//                     <td>Week of ${week}</td>
+//                     <td><strong>${weeklyGroups[week].toFixed(2)}</strong></td>
+//                 </tr>
+//             `;
+//         });
+//     }
 
-        // Render aggregated monthly rows
-        Object.keys(monthlyGroups).forEach(month => {
-            body.innerHTML += `
-                <tr>
-                    <td>${month}</td>
-                    <td><strong>${monthlyGroups[month].toFixed(2)}</strong></td>
-                </tr>
-            `;
-        });
-    }
-}
+//     // --- CASE 3: MONTHLY VIEW (Aggregated by Month) ---
+//     else if (currentView === 'monthly') {
+//         header.innerHTML = `
+//             <tr>
+//                 <th>Month</th>
+//                 <th>Total Expenses</th>
+//             </tr>
+//         `;
+
+//         // Group expenses by Month name and Year
+//         const monthlyGroups = {};
+//         allExpenses.forEach(exp => {
+//             const dateObj = new Date(exp.expenseCreationDate);
+//             const monthKey = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }); // e.g., "May 2026"
+//             const amount = parseFloat(exp.amount) || 0;
+//             monthlyGroups[monthKey] = (monthlyGroups[monthKey] || 0) + amount;
+//         });
+
+//         // Render aggregated monthly rows
+//         Object.keys(monthlyGroups).forEach(month => {
+//             body.innerHTML += `
+//                 <tr>
+//                     <td>${month}</td>
+//                     <td><strong>${monthlyGroups[month].toFixed(2)}</strong></td>
+//                 </tr>
+//             `;
+//         });
+//     }
+// }
 
 const deleteExpense = async (id) => {
     try {
@@ -418,26 +430,62 @@ document.getElementById("geminiForm").addEventListener("submit", async function 
 });
 
 const forgotBtn = document.getElementById("forgotBtn");
-    forgotBtn.addEventListener("click", function (e) {
+forgotBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("forgotBtn").style.display = "none";
+    document.getElementById("forgotForm").style.display = "block";
+    document.getElementById("forgotSubmitBtn").addEventListener("click", async function (e) {
         e.preventDefault();
-        document.getElementById("loginForm").style.display = "none";
-        document.getElementById("forgotBtn").style.display = "none";
-        document.getElementById("forgotForm").style.display = "block";
-        document.getElementById("forgotSubmitBtn").addEventListener("click", async function(e){
-            e.preventDefault();
-            const email=document.getElementById("forgotEmail").value;
-            try {
-                const response = await axios.post("http://localhost:3000/password/forget-password", {email});
-                if (response.data.success) {
-                    alert(response.data.message);
-                }
-                document.getElementById("forgotForm").style.display = "none";
-                document.getElementById("loginForm").style.display = "block";
-                document.getElementById("forgotBtn").style.display = "block";
-            } catch (error) {
-                console.error("Error sending password reset email:", error);
-                alert("Error occurred while sending password reset email.");
+        const email = document.getElementById("forgotEmail").value;
+        try {
+            const response = await axios.post("http://localhost:3000/password/forget-password", { email });
+            if (response.data.success) {
+                alert(response.data.message);
+            }
+            document.getElementById("forgotForm").style.display = "none";
+            document.getElementById("loginForm").style.display = "block";
+            document.getElementById("forgotBtn").style.display = "block";
+        } catch (error) {
+            console.error("Error sending password reset email:", error);
+            alert("Error occurred while sending password reset email.");
+        }
+    });
+
+});
+
+ const getPaginatedExpenses = async (page, limit) => {
+    try {
+        const paginationDiv = document.getElementById("pagination");
+        const response = await axios.get(`http://localhost:3000/expense/paginated?page=${page}&limit=${limit}`, {
+            headers: {
+                'Authorization': `${localStorage.getItem("token")}`
             }
         });
+        const totalPages = response.data.totalPages;
+        paginationDiv.innerHTML = "";
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement("button");
+            pageButton.textContent = i;
+            pageButton.addEventListener("click", () => getPaginatedExpenses(i, limit));
+            paginationDiv.appendChild(pageButton);
+        }
+        const table = document.getElementById("expenseTable");
+        table.innerHTML = "";
+        response.data.expenses.forEach(exp => {
+            const formattedDate = new Date(exp.expenseCreationDate).toLocaleDateString('en-GB').replace(/\//g, '-');
+            table.innerHTML += `
+                <tr>
+                    <td>${formattedDate}</td>
+                    <td>${exp.amount}</td>
+                    <td>${exp.description}</td>
+                    <td>${exp.category}</td>
+                </tr>
+            `;
+        });
+    } catch (error) {
+        console.error("Error fetching paginated expenses:", error);
+    }
+}
 
-    });
+

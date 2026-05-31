@@ -105,7 +105,7 @@
     </form>
 
     <div class="form-group" style="margin-top: 2rem;">
-      <label>FilterExpense By</label>
+      <label>Generate Report</label>
       <select id="category" value="daily" onchange="switchView(this.value)">
         <option value="daily">Daily</option>
         <option value="weekly">Weekly</option>
@@ -124,10 +124,11 @@
 
       <tbody id="expenseTable"></tbody>
     </table>
+    <div id="pagination"></div>
     <button style="margin-top: 1rem;" id="downloadReportBtn" onclick="downloadTableAsCSV()">Download CSV Report</button>
     <button type="button" id="leaderboardBtn">Show Leaderboard</button>
   </div>
-
+ 
   <form id="geminiForm" style="padding: 2rem; display: none;">
     <h1>Ask Gemini</h1>
     <div class="form-group">

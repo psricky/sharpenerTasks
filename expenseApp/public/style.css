@@ -146,3 +146,15 @@ table th{
     margin-top: 20px;
     list-style-type: none;
 }
+#pagination {
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:20px;
+
+    button {
+        color:#333;
+        background:#eee;
+        width:35px;
+    }
+}
