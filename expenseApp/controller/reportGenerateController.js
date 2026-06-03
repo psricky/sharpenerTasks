@@ -1,14 +1,14 @@
 const { Transform } = require('json2csv');
 // Import your configured sequelize instance and Model
 // const { sequelize, User } = require('./models'); 
-const Expense=require('../models/expense')
-const sequelize  = require('../config/db'); // Ensure your sequelize instance is imported
+const Expense = require('../models/expense')
+const sequelize = require('../config/db'); // Ensure your sequelize instance is imported
 
 const downloadCSV = async (req, res) => {
     try {
         // Default to 'daily' if no range is passed
-        const range = req.query.range || 'daily'; 
-        
+        const range = req.query.range || 'daily';
+
         let selectAttributes = [];
         let groupByAttributes = [];
         let orderByAttributes = [];
@@ -20,7 +20,7 @@ const downloadCSV = async (req, res) => {
             case 'weekly':
                 filename = 'weekly_expenses_report.csv';
                 csvFields = ['Year', 'Week', 'TotalExpense', 'TransactionCount'];
-                
+
                 // Group by Year and Week Number
                 selectAttributes = [
                     [sequelize.fn('YEAR', sequelize.col('expenseCreationDate')), 'Year'],
@@ -38,19 +38,24 @@ const downloadCSV = async (req, res) => {
 
             case 'monthly':
                 filename = 'monthly_expenses_report.csv';
-                csvFields = ['Year', 'Month', 'TotalExpense', 'TransactionCount'];
+                csvFields = ['Year', 'Month', 'TotalExpense', 'TransactionCount']; // 'Month' will now hold the name
 
                 // Group by Year and Month Number
                 selectAttributes = [
                     [sequelize.fn('YEAR', sequelize.col('expenseCreationDate')), 'Year'],
-                    [sequelize.fn('MONTH', sequelize.col('expenseCreationDate')), 'Month'],
+                    // Use MONTHNAME to get 'January', 'February', etc.
+                    [sequelize.fn('MONTHNAME', sequelize.col('expenseCreationDate')), 'Month'],
                 ];
                 groupByAttributes = [
                     sequelize.fn('YEAR', sequelize.col('expenseCreationDate')),
-                    sequelize.fn('MONTH', sequelize.col('expenseCreationDate'))
+                    // Keep grouping by both the number and name to satisfy SQL strict modes
+                    sequelize.fn('MONTH', sequelize.col('expenseCreationDate')),
+                    sequelize.fn('MONTHNAME', sequelize.col('expenseCreationDate'))
                 ];
                 orderByAttributes = [
                     [sequelize.fn('YEAR', sequelize.col('expenseCreationDate')), 'DESC'],
+                    // Sort by MONTH (integer) so it orders chronologically (Dec, Nov, Oct...) 
+                    // instead of alphabetically (September, October, November...)
                     [sequelize.fn('MONTH', sequelize.col('expenseCreationDate')), 'DESC']
                 ];
                 break;

@@ -112,6 +112,18 @@
          <option value="monthly">Monthly</option>
       </select>
     </div>
+    <div class="preference-control">
+  <label for="expensesPerPage">Expenses per page:</label>
+  <select id="expensesPerPage" value="5" onchange="getPaginatedExpenses(1, this.value)">
+    <option value="5">5 (Compact)</option>
+    <option value="10">10 (Default)</option>
+    <option value="20">20 (Spacious)</option>
+    <option value="40">40 (Large Screens)</option>
+  </select>
+</div>
+
+<div id="expenses-container"></div>
+<div id="pagination-container" class="pagination-buttons"></div>
     <table>
       <thead id="tableHeader">
         <tr>
