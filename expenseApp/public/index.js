@@ -153,7 +153,7 @@ function switchView(viewType) {
 function renderView() {
     const header = document.getElementById('tableHeader');
     const body = document.getElementById('expenseTable');
-
+    
     body.innerHTML = ""; // Clear table completely
 
     // --- CASE 1: DAILY VIEW (Default - Single Line Items) ---
@@ -175,6 +175,7 @@ function renderView() {
                     <td>${exp.amount}</td>
                     <td>${exp.description}</td>
                     <td>${exp.category}</td>
+                    <td><button onclick="deleteExpense(${exp.id})">Delete</button></td>
                 </tr>
             `;
         });
