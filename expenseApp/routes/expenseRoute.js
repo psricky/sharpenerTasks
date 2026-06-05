@@ -11,7 +11,7 @@ router.get('/get-expenses',authMiddleware.authenticate,expenseController.getExpe
 
 router.delete('/delete-expense/:id',authMiddleware.authenticate,expenseController.deleteExpense)
 
-router.get('/paginated',authMiddleware.authenticate, pageController.getPaginatedExpenses);
+router.get('/paginated/',authMiddleware.authenticate, pageController.getPaginatedExpenses);
 
 
 router.get('/download-csv', authMiddleware.authenticate, reportGenerate.downloadCSV);

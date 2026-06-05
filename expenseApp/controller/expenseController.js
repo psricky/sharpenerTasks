@@ -2,13 +2,13 @@ const { Sequelize } = require('sequelize')
 const Expense = require('../models/expense')
 const NewUsers = require('../models/user')
 const { GoogleGenAI } = require('@google/genai');
-const sequelize=require('../config/db')
+const sequelize=require('../config_db/db')
 const addExpense = async (req, res) => {
     const t = await sequelize.transaction();
     try {
         
-        const { amount, description, expenseCreationDate } = req.body
-        if (!amount || !description) {
+        const { amount, description, expenseCreationDate, note } = req.body
+        if (!amount || !description || !note) {
             return res.status(400).json({
                 success: false,
                 message: "Fields are mandatory"
@@ -27,7 +27,8 @@ const addExpense = async (req, res) => {
 
         const userId = req.user.id
         const newExpense = await Expense.create({
-            amount: amount, description: description, userId: userId, expenseCreationDate: expenseCreationDate, category: responseFromAi.text
+            amount: amount, description: description, userId: userId, expenseCreationDate: expenseCreationDate,
+             category: responseFromAi.text, note:note
         }, { transaction: t })
         // Update the user's total expenses
         const user = await NewUsers.findByPk(userId)

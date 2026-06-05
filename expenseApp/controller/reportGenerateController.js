@@ -2,7 +2,7 @@ const { Transform } = require('json2csv');
 // Import your configured sequelize instance and Model
 // const { sequelize, User } = require('./models'); 
 const Expense = require('../models/expense')
-const sequelize = require('../config/db'); // Ensure your sequelize instance is imported
+const sequelize = require('../config_db/db'); // Ensure your sequelize instance is imported
 
 const downloadCSV = async (req, res) => {
     try {

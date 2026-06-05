@@ -1,4 +1,4 @@
-const sequelize=require('../config/db');
+const sequelize=require('../config_db/db');
 const {Sequelize,DataTypes}=require('sequelize');
 
 const Expense=sequelize.define('Expense',{
@@ -22,6 +22,10 @@ const Expense=sequelize.define('Expense',{
     category:{
         type:DataTypes.STRING,
         allowNull:false
+    },
+    note: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 });
 
