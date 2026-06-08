@@ -3,30 +3,6 @@ const { NewUsers, ForgotPasswordRequests } = require('../models');
 
 const { sendForgotPasswordEmail } = require('../services/nodemailerService');
 const { v4: uuidv4 } = require('uuid');
-// const sendForgotPasswordController = async (req, res) => {
-//   try {
-//     const email = req.body.email;
-//     if (!email) {
-//       return res.status(400).json({ success: false, message: 'Email is required' });
-//     }
-
-//     const user = await NewUsers.findOne({ where: { email } });
-//     if (!user) {
-//       return res.status(200).json({
-//         success: true,
-//         message: 'If the email is registered, password reset instructions have been sent.'
-//       });
-//     }
-
-//     const resetRequest = await ForgotPasswordRequests.create({ userId: user.id });
-//     await sendForgotPasswordEmail(email, resetRequest.id);
-
-//     return res.status(200).json({ success: true, message: 'Password reset email sent successfully' });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ success: false, message: 'Internal server error' });
-//   }
-// };
 
 function generateResetToken() {
     // Generate a fresh unique ID

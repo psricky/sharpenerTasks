@@ -1,0 +1,5 @@
+::1 - - [08/Jun/2026:19:17:30 +0000] "GET / HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+::1 - - [08/Jun/2026:19:17:30 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 187 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+::1 - - [08/Jun/2026:19:17:30 +0000] "GET /style.css HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+::1 - - [08/Jun/2026:19:17:30 +0000] "GET /index.js HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+::1 - - [08/Jun/2026:19:44:36 +0000] "POST /user/login HTTP/1.1" 500 46 "-" "PostmanRuntime/7.54.0"
