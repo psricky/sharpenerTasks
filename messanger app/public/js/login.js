@@ -56,27 +56,58 @@ async function login() {
 
         });
 
+        if (!response.ok) {
 
+            throw new Error("Request Failed");
+
+        }
 
         // Convert Response To JSON
         const data = await response.json();
 
 
 
+
         // Display Message
+
+
         if (data.success) {
+
+            localStorage.setItem("token", data.token);
+
 
             message.style.color = "green";
 
-        }
+            message.innerText = data.message;
 
+            const token = localStorage.getItem("token");
+
+            const response1 = await fetch("/profile", {
+
+                method: "GET",
+
+                headers: {
+
+                    Authorization: token
+
+                }
+
+            });
+
+            const data1 = await response1.json();
+
+            console.log(data1);
+
+        }
         else {
 
             message.style.color = "red";
 
+            message.innerText = data.message;
+
         }
 
-        message.innerText = data.message;
+
 
     }
 

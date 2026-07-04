@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 
 const authRoutes = require("./routes/authRoutes");
+const sequelize = require("./config/db");
 
 const app = express();
 
@@ -54,8 +55,19 @@ app.use((req, res) => {
 
 const PORT = 3000;
 
-app.listen(PORT, () => {
+sequelize
+    .sync()
+    .then(() => {
 
-    console.log(`Server running on http://localhost:${PORT}`);
+        app.listen(PORT, () => {
 
-});
+            console.log(`Server running on http://localhost:${PORT}`);
+
+        });
+
+    })
+    .catch((error) => {
+
+        console.log(error);
+
+    });
