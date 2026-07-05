@@ -3,6 +3,10 @@ const path = require("path");
 
 const authRoutes = require("./routes/authRoutes");
 const sequelize = require("./config/db");
+const User = require("./models/User");
+
+const Message = require("./models/Message");
+const chatRoutes = require("./routes/chatRoutes");
 
 const app = express();
 
@@ -30,7 +34,7 @@ app.use(express.static(path.join(__dirname, "public")));
 // ==============================
 
 app.use("/", authRoutes);
-
+app.use("/chat", chatRoutes);
 
 // ==============================
 // Handle Invalid Routes (404)
@@ -54,6 +58,10 @@ app.use((req, res) => {
 // ==============================
 
 const PORT = 3000;
+
+User.hasMany(Message);
+
+Message.belongsTo(User);
 
 sequelize
     .sync()
