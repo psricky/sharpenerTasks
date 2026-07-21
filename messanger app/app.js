@@ -1,44 +1,21 @@
 const express = require("express");
 const path = require("path");
-
+const app = express();
+require("dotenv").config();
 const authRoutes = require("./routes/authRoutes");
 const sequelize = require("./config/db");
 const User = require("./models/User");
-
 const Message = require("./models/Message");
-const chatRoutes = require("./routes/chatRoutes");
+const chatRoutes = require("./routes/chatRoutes");  
 
-const app = express();
-
-
-// ==============================
-// Middleware
-// ==============================
-
-// Parse JSON data sent by Fetch API
 app.use(express.json());
 
-// Parse URL Encoded Data
 app.use(express.urlencoded({ extended: true }));
 
-
-// ==============================
-// Static Files
-// ==============================
-
 app.use(express.static(path.join(__dirname, "public")));
-
-
-// ==============================
-// Routes
-// ==============================
-
 app.use("/", authRoutes);
+app.use("/user", authRoutes);
 app.use("/chat", chatRoutes);
-
-// ==============================
-// Handle Invalid Routes (404)
-// ==============================
 
 app.use((req, res) => {
 
@@ -51,11 +28,6 @@ app.use((req, res) => {
     });
 
 });
-
-
-// ==============================
-// Start Server
-// ==============================
 
 const PORT = 3000;
 

@@ -1,123 +1,62 @@
-// Select Login Button
-const loginBtn = document.getElementById("loginBtn");
+const loginForm = document.getElementById("loginForm");
 
-// Add Click Event
-loginBtn.addEventListener("click", login);
+loginForm.addEventListener("submit", async function (e) {
 
+    e.preventDefault();
 
+    const emailorphone = document.getElementById("emailorphone").value.trim();
+    const password = document.getElementById("password").value.trim();
 
-// Login Function
-async function login() {
 
     try {
 
-        // Read Input Values
-        const emailOrPhone =
-            document.getElementById("emailOrPhone").value.trim();
-
-        const password =
-            document.getElementById("password").value.trim();
-
-        const message =
-            document.getElementById("message");
-
-
-
-        // Validation
-        if (!emailOrPhone || !password) {
-
-            message.style.color = "red";
-
-            message.innerText = "Please fill all fields.";
-
-            return;
-        }
-
-
-
-        // Send Request
-        const response = await fetch("/login", {
-
-            method: "POST",
-
-            headers: {
-
-                "Content-Type": "application/json"
-
-            },
-
-            body: JSON.stringify({
-
-                emailOrPhone,
-
+        const response = await axios.post(
+            "http://localhost:3000/user/login",
+            {
+                emailorphone,
                 password
+            }
+        );
 
-            })
+        localStorage.setItem("currentUser", JSON.stringify(response.data.user));
 
-        });
+        // Save JWT Token
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("isLoggedIn", "true");
 
-        if (!response.ok) {
+        loginForm.reset();
+        const token = localStorage.getItem("token");
 
-            throw new Error("Request Failed");
+        if (!token) {
 
-        }
-
-        // Convert Response To JSON
-        const data = await response.json();
-
-
-
-
-        // Display Message
-
-
-        if (data.success) {
-
-            localStorage.setItem("token", data.token);
-
-
-            message.style.color = "green";
-
-            message.innerText = data.message;
-
-            const token = localStorage.getItem("token");
-
-            const response1 = await fetch("/profile", {
-
-                method: "GET",
-
-                headers: {
-
-                    Authorization: token
-
-                }
-
-            });
-
-            const data1 = await response1.json();
-
-            console.log(data1);
+            window.location.href = "/";
 
         }
-        else {
+        window.location.href = "/chat/chatpage";
 
-            message.style.color = "red";
 
-            message.innerText = data.message;
+    } catch (error) {
 
+        if (error.response) {
+
+            if (error.response.status === 401) {
+                message.textContent = "Incorrect Password";
+            }
+
+            else if (error.response.status === 404) {
+                message.textContent = "User does not exist";
+            }
+
+            else {
+                message.textContent = error.response.data.message || "Login Failed";
+            }
+
+        } else {
+            message.textContent = "Unable to connect to server.";
         }
 
-
-
+        message.style.color = "red";
+        message.style.display = "block";
     }
 
-    catch (error) {
-
-        console.log(error);
-
-        document.getElementById("message").innerText =
-            "Something went wrong.";
-
-    }
-
-}
+});

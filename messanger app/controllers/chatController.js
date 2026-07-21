@@ -2,57 +2,52 @@ const Message = require("../models/Message");
 
 const User = require("../models/User");
 
+const path = require("path");
 
-// =====================================
-// Send Message
-// =====================================
+const getChatPage = (req, res) => {
 
-exports.sendMessage = async (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/html/chat.html"));
+
+};
+
+const sendMessage = async (req, res) => {
 
     try {
 
         const { message } = req.body;
 
-        if (!message) {
+        if (!message || message.trim() === "") {
 
             return res.status(400).json({
-
                 success: false,
-
-                message: "Message cannot be empty."
-
+                message: "Message cannot be empty"
             });
 
         }
 
-        const newMessage = await Message.create({
-            message,
-            UserId: req.user.id
-        });
+        const newMessage = await req.user.createMessage({
 
-        const completeMessage = await Message.findByPk(newMessage.id, {
-            include: [{
-                model: User,
-                attributes: ["name"]
-            }]
+            message
+
         });
 
         res.status(201).json({
+
             success: true,
-            data: completeMessage
+
+            message: newMessage
+
         });
 
     }
 
-    catch (error) {
-
-        console.log(error);
+    catch (err) {
 
         res.status(500).json({
 
             success: false,
 
-            message: "Internal Server Error"
+            error: err.message
 
         });
 
@@ -60,12 +55,7 @@ exports.sendMessage = async (req, res) => {
 
 };
 
-
-// =====================================
-// Get All Messages
-// =====================================
-
-exports.getMessages = async (req, res) => {
+const getMessages = async (req, res) => {
 
     try {
 
@@ -77,7 +67,7 @@ exports.getMessages = async (req, res) => {
 
                     model: User,
 
-                    attributes: ["name"]
+                    attributes: ["id", "name"]
 
                 }
 
@@ -91,28 +81,25 @@ exports.getMessages = async (req, res) => {
 
         });
 
-        res.status(200).json({
-
-            success: true,
-
-            data: messages
-
-        });
+        res.status(200).json(messages);
 
     }
 
-    catch (error) {
-
-        console.log(error);
+    catch (err) {
 
         res.status(500).json({
 
-            success: false,
-
-            message: "Internal Server Error"
+            error: err.message
 
         });
 
     }
+
+};
+module.exports = {
+
+    getChatPage,
+    sendMessage,
+    getMessages
 
 };

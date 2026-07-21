@@ -1,49 +1,28 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
-module.exports = (req, res, next) => {
 
-    try {
+const User = require('../models/User');
 
-        // Read token from request header
-        const token = req.header("Authorization");
+const authenticate = async (req, res, next) => {
+  try {
+    const token = req.header('Authorization');
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-        // Check whether token exists
-        if (!token) {
-
-            return res.status(401).json({
-
-                success: false,
-
-                message: "Access Denied"
-
-            });
-
-        }
-
-        // Verify token
-        const decodedToken = jwt.verify(
-            token,
-            "mySecretKey"
-        );
-
-        // Store user information in request
-        req.user = decodedToken;
-
-        // Move to next middleware/controller
-        next();
-
+    const user = await User.findByPk(decoded.userId);
+    if (!user) {
+      return res.status(401).json({ message: 'Authentication failed' });
     }
 
-    catch (error) {
+    req.user = user; 
 
-        return res.status(401).json({
-
-            success: false,
-
-            message: "Invalid Token"
-
-        });
-
-    }
-
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Authentication failed' });
+  }
+};
+module.exports = {
+  authenticate
 };

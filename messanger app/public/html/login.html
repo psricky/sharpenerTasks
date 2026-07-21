@@ -15,22 +15,19 @@
 
 <body>
 
-    <div class="container">
+    <div class="container" id="loginSection">
 
-        <div class="form-box">
+        <form class="form-box" id="loginForm">
 
             <h1>Login</h1>
 
             <div class="input-group">
 
-                <label for="emailOrPhone">
+                <label for="Email or Phone Number">
                     Email or Phone Number
                 </label>
 
-                <input
-                    type="text"
-                    id="emailOrPhone"
-                    placeholder="Enter Email or Phone">
+                <input type="text" id="emailorphone" placeholder="Enter Email or Phone Number">
 
             </div>
 
@@ -40,14 +37,11 @@
                     Password
                 </label>
 
-                <input
-                    type="password"
-                    id="password"
-                    placeholder="Enter Password">
+                <input type="password" id="password" placeholder="Enter Password">
 
             </div>
 
-            <button id="loginBtn">
+            <button type="submit" id="loginBtn">
 
                 Login
 
@@ -59,7 +53,7 @@
 
                 Don't have an account?
 
-                <a href="/signup">
+                <a href="/signupPage">
 
                     Sign Up
 
@@ -67,11 +61,12 @@
 
             </p>
 
-        </div>
+        </form>
 
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="/js/login.js"></script>
+
 
 </body>
 

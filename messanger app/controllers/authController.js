@@ -1,273 +1,115 @@
-const path = require("path");
-
 const User = require("../models/User");
-
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const path = require("path");
 const { Op } = require("sequelize");
-
-const bcrypt = require("bcrypt");
-
-const jwt = require("jsonwebtoken");
-
-
-// ===============================
-// Display Login Page
-// ===============================
-
-exports.getLoginPage = (req, res) => {
-
-    res.sendFile(path.join(__dirname, "../public/login.html"));
-
-};
-
-
-// ===============================
-// Display Signup Page
-// ===============================
-
-exports.getSignupPage = (req, res) => {
-
-    res.sendFile(path.join(__dirname, "../public/signup.html"));
-
-};
-
-exports.getProfile = (req, res) => {
-
-    res.status(200).json({
-
-        success: true,
-
-        message: "Welcome",
-
-        user: req.user
-
-    });
-
-};
-
-// ===============================
-// Signup Controller
-// ===============================
-
-exports.signup = async (req, res) => {
-
+const getLoginPage = (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/html/login.html"));
+}
+const getSignupPage = (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/html/signup.html"));
+}
+const userEntry = async (req, res) => {
     try {
-
         const { name, email, phone, password } = req.body;
-
-        // Check if all fields are entered
         if (!name || !email || !phone || !password) {
-
             return res.status(400).json({
-
                 success: false,
-
-                message: "Please fill all fields."
-
-            });
-
+                message: "Fields are mandatory"
+            })
         }
 
-        // Check if email already exists
-        const existingEmail = await User.findOne({
-
+        const existingUser = await User.findOne({
             where: {
-
-                email: email
-
-            }
-
-        });
-
-        if (existingEmail) {
-
-            return res.status(400).json({
-
-                success: false,
-
-                message: "Email already exists."
-
-            });
-
-        }
-
-        // Check if phone already exists
-        const existingPhone = await User.findOne({
-
-            where: {
-
-                phone: phone
-
-            }
-
-        });
-
-        if (existingPhone) {
-
-            return res.status(400).json({
-
-                success: false,
-
-                message: "Phone number already exists."
-
-            });
-
-        }
-
-        // Save user
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        await User.create({
-
-            name,
-
-            email,
-
-            phone,
-
-            password: hashedPassword
-
-        });
-
-        res.status(201).json({
-
-            success: true,
-
-            message: "Account created successfully."
-
-        });
-
-    }
-
-    catch (error) {
-
-        console.log(error);
-
-        res.status(500).json({
-
-            success: false,
-
-            message: "Internal Server Error"
-
-        });
-
-    }
-
-};
-
-
-// ===============================
-// Login Controller
-// ===============================
-
-exports.login = async (req, res) => {
-
-    try {
-
-        const { emailOrPhone, password } = req.body;
-
-        if (!emailOrPhone || !password) {
-
-            return res.status(400).json({
-
-                success: false,
-
-                message: "Please enter all fields."
-
-            });
-
-        }
-
-        // Find user by email OR phone
-        const user = await User.findOne({
-
-            where: {
-
                 [Op.or]: [
-
-                    { email: emailOrPhone },
-
-                    { phone: emailOrPhone }
-
+                    { email: email },
+                    { phone: phone }
                 ]
-
             }
+        })
+        if (existingUser) {
+            return res.status(409).json({
+                success: false,
+                message: "user already exists"
+            })
+        }
 
+        const saltrounds = 10
+        const hash = await bcrypt.hash(password, saltrounds);
+        const newEntry = await User.create({
+             name: name, email: email, phone: phone, password: hash
         });
-
-        if (!user) {
-
-            return res.status(404).json({
-
-                success: false,
-
-                message: "User not found."
-
-            });
-
-        }
-
-        // Check password
-        const isPasswordCorrect = await bcrypt.compare(
-            password,
-            user.password
-        );
-
-        if (!isPasswordCorrect) {
-
-            return res.status(401).json({
-
-                success: false,
-
-                message: "Incorrect password."
-
-            });
-
-        }
-
-        const token = jwt.sign(
-
-            {
-
-                id: user.id,
-
-                email: user.email
-
-            },
-
-            "mySecretKey",
-
-            {
-
-                expiresIn: "1h"
-
-            }
-
-        );
-
-        res.status(200).json({
-
+        return res.status(201).json({
             success: true,
+            message: "User registered successfully"
+        })
 
-            message: "Login Successful.",
-
-            token: token
-
-        });
-
-    }
-
-    catch (error) {
-
-        console.log(error);
-
-        res.status(500).json({
-
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
             success: false,
-
-            message: "Internal Server Error"
-
+            message: "internal server error"
         });
-
     }
+}
 
-};
+
+const userLogin = async (req, res) => {
+    try {
+        const { emailorphone, password } = req.body;
+        if (!emailorphone || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Fields are mandatory"
+            })
+        }
+        const user = await User.findOne({
+            where: {
+                [Op.or]: [
+                    { email: emailorphone },
+                    { phone: emailorphone }
+                ]
+            }
+        })
+        if (!user) return res.status(404).json({
+            success: false,
+            message: 'User not found'
+        })
+        const result = await bcrypt.compare(password, user.password);
+        if (!result) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid password"
+            })
+        }
+        function generateToken(user) {
+            const payload = {
+                userId: user.id,
+                email: user.email
+            };
+            return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+        }
+        return res.status(200).json({
+            success: true,
+            message: 'User logged in successfully',
+            token: generateToken(user)
+        })
+
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            success: false,
+            message: "internal server error"
+        });
+    }
+}
+
+
+
+module.exports = {
+    userEntry,
+    userLogin,
+    getLoginPage,
+    getSignupPage
+}

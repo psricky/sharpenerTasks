@@ -1,14 +1,123 @@
+document.getElementById("logoutBtn").addEventListener("click", function () {
+    // Clear the token and login status from localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("isLoggedIn");
+    // Redirect to login page
+    window.location.href = "/";
+}
+);
+const token = localStorage.getItem("token");
+
+if (!token) {
+
+    window.location.href = "/";
+
+}
+
+const chatMessages = document.getElementById("chatMessages");
+
+const inputMessage = document.getElementById("message");
+
 const sendBtn = document.getElementById("sendBtn");
 
-const messageInput = document.getElementById("messageInput");
+document.addEventListener("DOMContentLoaded", loadMessages);
 
-const chatBody = document.getElementById("chatBody");
+async function loadMessages() {
 
+    try {
+
+        const response = await axios.get(
+
+            "http://localhost:3000/chat/message",
+
+            {
+
+                headers: {
+
+                    Authorization: token
+
+                }
+
+            }
+
+        );
+
+        chatMessages.textContent = "";
+        response.data.forEach(function(chat){
+
+            displayMessage(chat);
+
+        });
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    }
+
+    catch(err){
+
+        console.log(err);
+
+    }
+
+}
+function displayMessage(chat){
+
+    const messageDiv = document.createElement("div");
+
+    messageDiv.classList.add("message");
+
+    // Logged in user's name
+    const currentUser = localStorage.getItem("currentUser");
+
+    if(chat.name === currentUser){
+
+        messageDiv.classList.add("sent");
+
+    }
+    else{
+
+        messageDiv.classList.add("received");
+
+    }
+
+    const sender = document.createElement("div");
+
+    sender.classList.add("sender");
+
+    sender.textContent = chat.name;
+
+    const text = document.createElement("div");
+
+    text.textContent = chat.message;
+
+    const time = document.createElement("span");
+
+    time.classList.add("time");
+
+    const date = new Date(chat.createdAt);
+
+    time.textContent = date.toLocaleTimeString([],{
+
+        hour:"2-digit",
+
+        minute:"2-digit"
+
+    });
+
+    messageDiv.appendChild(sender);
+
+    messageDiv.appendChild(text);
+
+    messageDiv.appendChild(time);
+
+    chatMessages.appendChild(messageDiv);
+
+}
 sendBtn.addEventListener("click", sendMessage);
 
-messageInput.addEventListener("keypress", function (event) {
+inputMessage.addEventListener("keydown",function(event){
 
-    if (event.key === "Enter") {
+    if(event.key === "Enter"){
 
         sendMessage();
 
@@ -16,43 +125,54 @@ messageInput.addEventListener("keypress", function (event) {
 
 });
 
-function sendMessage() {
+async function sendMessage() {
 
-    const text = messageInput.value.trim();
+    const message=inputMessage.value.trim();
 
-    if (text === "") {
+    if (message === "") {
 
         return;
 
     }
 
-    const now = new Date();
+    try {
+        
 
-    const time = now.toLocaleTimeString([], {
+        const response = await axios.post(
 
-        hour: "2-digit",
+            "http://localhost:3000/chat/message",
 
-        minute: "2-digit"
+            {
 
-    });
+                message
 
-    const message = document.createElement("div");
+            },
 
-    message.className = "message sent";
+            {
 
-    const p = document.createElement("p");
-    p.innerText = text;
+                headers: {
 
-    const span = document.createElement("span");
-    span.innerText = time;
+                    Authorization: token
 
-    message.appendChild(p);
-    message.appendChild(span);
+                }
 
-    chatBody.appendChild(message);
+            }
 
-    messageInput.value = "";
+        );
 
-    chatBody.scrollTop = chatBody.scrollHeight;
+        displayMessage(response.data.message);
+
+        inputMessage.value = "";
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    }
+
+    catch (err) {
+
+        console.log(err);
+
+    }
 
 }
+

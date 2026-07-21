@@ -1,97 +1,23 @@
-// Select the Signup Button
-const signupBtn = document.getElementById("signupBtn");
-
-// Add Click Event
-signupBtn.addEventListener("click", signup);
-
-
-
-// Signup Function
-async function signup() {
-
+const signupForm = document.getElementById("signupForm");
+signupForm.addEventListener("submit", async function (e) {
     try {
+        e.preventDefault();
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const phone = document.getElementById("phone").value; 
+        const password = document.getElementById("password").value;
 
-        // Read Input Values
-        const name = document.getElementById("name").value.trim();
-
-        const email = document.getElementById("email").value.trim();
-
-        const phone = document.getElementById("phone").value.trim();
-
-        const password = document.getElementById("password").value.trim();
-
-        const message = document.getElementById("message");
-
-
-
-        // Validation
-        if (!name || !email || !phone || !password) {
-
-            message.style.color = "red";
-
-            message.innerText = "Please fill all fields.";
-
-            return;
-        }
-
-
-
-        // Send Request To Server
-        const response = await fetch("/signup", {
-
-            method: "POST",
-
-            headers: {
-
-                "Content-Type": "application/json"
-
-            },
-
-            body: JSON.stringify({
-
-                name,
-
-                email,
-
-                phone,
-
-                password
-
-            })
-
-        });
-
-
-
-        // Convert Response To JSON
-        const data = await response.json();
-
-
-
-        // Show Response
-        if (data.success) {
-
-            message.style.color = "green";
-
-        }
-
-        else {
-
-            message.style.color = "red";
-
-        }
-
-        message.innerText = data.message;
-
+        // Ensure key names match exactly what backend expects
+        const userData = { name, email, phone, password }; 
+        
+        const response = await axios.post("http://localhost:3000/user/signup", userData);
+        alert("Signup successful! Please login to continue.");
+        signupForm.reset(); // Reset the form after successful signup
+        window.location.href = "/"; 
+        
+       
+    } catch (error) {
+        // Log the actual server response message if available
+        console.error("Signup failed:", error.response?.data?.message || error.message);
     }
-
-    catch (error) {
-
-        console.log(error);
-
-        document.getElementById("message").innerText =
-            "Something went wrong.";
-
-    }
-
-}
+});

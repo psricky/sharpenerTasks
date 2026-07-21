@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Chat</title>
+
+    <link rel="stylesheet" href="/css/chat.css">
+</head>
+
+<body>
+
+<div class="chat-container">
+
+    <div class="chat-header">
+        <h2>Group Chat</h2>
+        <!-- Added Logout Button -->
+    <button id="logoutBtn" class="logout-btn">Logout</button>
+    </div>
+
+    <div id="chatMessages" class="chat-messages">
+
+        <!-- Messages will be added by JavaScript -->
+
+    </div>
+
+    <div class="chat-input">
+
+        <input
+            type="text"
+            id="message"
+            placeholder="Type a message">
+
+        <button id="sendBtn">
+            Send
+        </button>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="/js/chat.js"></script>
+
+</body>
+</html>

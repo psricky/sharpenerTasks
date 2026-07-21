@@ -10,22 +10,12 @@ const authMiddleware = require("../middlewares/authMiddleware");
 router.get("/", authController.getLoginPage);
 
 // Signup Page
-router.get("/signup", authController.getSignupPage);
-
-router.get(
-
-    "/profile",
-
-    authMiddleware,
-
-    authController.getProfile
-
-);
+router.get("/signupPage", authController.getSignupPage);
 
 // Handle Signup
-router.post("/signup", authController.signup);
+router.post("/signup", authController.userEntry);
 
 // Handle Login
-router.post("/login", authController.login);
+router.post("/login", authController.userLogin);
 
 module.exports = router;
