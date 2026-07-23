@@ -1,3 +1,14 @@
+const socket = io();
+socket.on("connect", () => {
+
+    console.log("Connected");
+
+});
+socket.on("receive-message", function (chat) {
+
+    displayMessage(chat);
+
+});
 document.getElementById("logoutBtn").addEventListener("click", function () {
     // Clear the token and login status from localStorage
     localStorage.removeItem("token");
@@ -42,8 +53,8 @@ async function loadMessages() {
 
         );
 
-        chatMessages.textContent = "";
-        response.data.forEach(function(chat){
+       
+        response.data.forEach((chat)=> {
 
             displayMessage(chat);
 
@@ -53,28 +64,28 @@ async function loadMessages() {
 
     }
 
-    catch(err){
+    catch (err) {
 
         console.log(err);
 
     }
 
 }
-function displayMessage(chat){
+function displayMessage(chat) {
 
+    console.log(chat);
     const messageDiv = document.createElement("div");
 
     messageDiv.classList.add("message");
 
-    // Logged in user's name
-    const currentUser = localStorage.getItem("currentUser");
+    const currentUserId = Number(localStorage.getItem("currentUserId"));
 
-    if(chat.name === currentUser){
+    if (chat.userId === currentUserId) {
 
         messageDiv.classList.add("sent");
 
     }
-    else{
+    else {
 
         messageDiv.classList.add("received");
 
@@ -96,11 +107,11 @@ function displayMessage(chat){
 
     const date = new Date(chat.createdAt);
 
-    time.textContent = date.toLocaleTimeString([],{
+    time.textContent = date.toLocaleTimeString([], {
 
-        hour:"2-digit",
+        hour: "2-digit",
 
-        minute:"2-digit"
+        minute: "2-digit"
 
     });
 
@@ -115,9 +126,9 @@ function displayMessage(chat){
 }
 sendBtn.addEventListener("click", sendMessage);
 
-inputMessage.addEventListener("keydown",function(event){
+inputMessage.addEventListener("keydown", function (event) {
 
-    if(event.key === "Enter"){
+    if (event.key === "Enter") {
 
         sendMessage();
 
@@ -127,7 +138,7 @@ inputMessage.addEventListener("keydown",function(event){
 
 async function sendMessage() {
 
-    const message=inputMessage.value.trim();
+    const message = inputMessage.value.trim();
 
     if (message === "") {
 
@@ -136,7 +147,7 @@ async function sendMessage() {
     }
 
     try {
-        
+
 
         const response = await axios.post(
 
@@ -159,8 +170,6 @@ async function sendMessage() {
             }
 
         );
-
-        displayMessage(response.data.message);
 
         inputMessage.value = "";
 

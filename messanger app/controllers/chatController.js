@@ -1,8 +1,11 @@
+const socket = require("../socket");
+
 const Message = require("../models/Message");
 
 const User = require("../models/User");
 
 const path = require("path");
+const { where } = require("sequelize");
 
 const getChatPage = (req, res) => {
 
@@ -19,8 +22,11 @@ const sendMessage = async (req, res) => {
         if (!message || message.trim() === "") {
 
             return res.status(400).json({
+
                 success: false,
+
                 message: "Message cannot be empty"
+
             });
 
         }
@@ -31,11 +37,28 @@ const sendMessage = async (req, res) => {
 
         });
 
+        const savedMessage = await Message.findByPk(newMessage.id, {
+
+            include: [
+
+                {
+
+                    model: User,
+
+                    attributes: ["id", "name"]
+
+                }
+
+            ]
+
+        });
+        
+        socket.getIO().emit("receive-message", savedMessage);
         res.status(201).json({
 
             success: true,
 
-            message: newMessage
+            message: savedMessage
 
         });
 
@@ -59,27 +82,7 @@ const getMessages = async (req, res) => {
 
     try {
 
-        const messages = await Message.findAll({
-
-            include: [
-
-                {
-
-                    model: User,
-
-                    attributes: ["id", "name"]
-
-                }
-
-            ],
-
-            order: [
-
-                ["createdAt", "ASC"]
-
-            ]
-
-        });
+        const messages = await Message.findAll();
 
         res.status(200).json(messages);
 

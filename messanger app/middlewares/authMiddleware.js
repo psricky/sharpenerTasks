@@ -10,8 +10,10 @@ const authenticate = async (req, res, next) => {
       return res.status(401).json({ message: 'No token provided' });
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    console.log("Decoded:",decoded);
 
     const user = await User.findByPk(decoded.userId);
+    console.log("user:",user);
     if (!user) {
       return res.status(401).json({ message: 'Authentication failed' });
     }

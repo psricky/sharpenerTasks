@@ -18,9 +18,8 @@ loginForm.addEventListener("submit", async function (e) {
             }
         );
 
-        localStorage.setItem("currentUser", JSON.stringify(response.data.user));
-
-        // Save JWT Token
+        localStorage.setItem("currentUserId", JSON.stringify(response.data.userId));
+        localStorage.setItem("currentUser", response.data.name);
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("isLoggedIn", "true");
 
