@@ -1,5 +1,4 @@
 const loginForm = document.getElementById("loginForm");
-
 loginForm.addEventListener("submit", async function (e) {
 
     e.preventDefault();
@@ -17,10 +16,9 @@ loginForm.addEventListener("submit", async function (e) {
                 password
             }
         );
-
-        localStorage.setItem("currentUserId", JSON.stringify(response.data.userId));
-        localStorage.setItem("currentUser", response.data.name);
+        
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem("currentUserId",response.data.user.id)
         localStorage.setItem("isLoggedIn", "true");
 
         loginForm.reset();

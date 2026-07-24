@@ -1,19 +1,32 @@
-const socket = io();
+const socket=io("http://localhost:3000",{
+    auth: {
+        token: localStorage.getItem("token")
+    }
+});
 socket.on("connect", () => {
 
     console.log("Connected");
 
 });
-socket.on("receive-message", function (chat) {
+
+socket.on("chat-message", function (chat) {    //receive the new message from backend
 
     displayMessage(chat);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 
 });
+
+socket.on("connect_error", (err) => {
+
+    console.log(err.message);
+
+});
+
 document.getElementById("logoutBtn").addEventListener("click", function () {
-    // Clear the token and login status from localStorage
+    
     localStorage.removeItem("token");
     localStorage.removeItem("isLoggedIn");
-    // Redirect to login page
+    
     window.location.href = "/";
 }
 );
@@ -53,10 +66,11 @@ async function loadMessages() {
 
         );
 
+       chatMessages.innerHTML = "";
        
-        response.data.forEach((chat)=> {
+       response.data.forEach((message)=> {
 
-            displayMessage(chat);
+            displayMessage(message);
 
         });
 
@@ -71,16 +85,15 @@ async function loadMessages() {
     }
 
 }
-function displayMessage(chat) {
+function displayMessage(message) {
 
-    console.log(chat);
     const messageDiv = document.createElement("div");
 
     messageDiv.classList.add("message");
+    
+    const currentUserId=Number(localStorage.getItem("currentUserId"));
 
-    const currentUserId = Number(localStorage.getItem("currentUserId"));
-
-    if (chat.userId === currentUserId) {
+    if (message.UserId === currentUserId) {
 
         messageDiv.classList.add("sent");
 
@@ -95,17 +108,17 @@ function displayMessage(chat) {
 
     sender.classList.add("sender");
 
-    sender.textContent = chat.name;
+    sender.textContent = message.User.name;
 
     const text = document.createElement("div");
 
-    text.textContent = chat.message;
+    text.textContent = message.message;
 
     const time = document.createElement("span");
 
     time.classList.add("time");
 
-    const date = new Date(chat.createdAt);
+    const date = new Date(message.createdAt);
 
     time.textContent = date.toLocaleTimeString([], {
 
@@ -124,7 +137,11 @@ function displayMessage(chat) {
     chatMessages.appendChild(messageDiv);
 
 }
-sendBtn.addEventListener("click", sendMessage);
+sendBtn.addEventListener("click", ()=>{
+    
+    sendMessage()
+
+})
 
 inputMessage.addEventListener("keydown", function (event) {
 
@@ -149,7 +166,7 @@ async function sendMessage() {
     try {
 
 
-        const response = await axios.post(
+        await axios.post(
 
             "http://localhost:3000/chat/message",
 

@@ -1,4 +1,3 @@
-const socket = require("../socket");
 
 const Message = require("../models/Message");
 
@@ -13,7 +12,7 @@ const getChatPage = (req, res) => {
 
 };
 
-const sendMessage = async (req, res) => {
+const sendMessage = async (req, res, io) => {
 
     try {
 
@@ -30,7 +29,6 @@ const sendMessage = async (req, res) => {
             });
 
         }
-
         const newMessage = await req.user.createMessage({
 
             message
@@ -52,8 +50,11 @@ const sendMessage = async (req, res) => {
             ]
 
         });
+
+        console.log(savedMessage)
         
-        socket.getIO().emit("receive-message", savedMessage);
+        io.emit("chat-message", savedMessage); //sending the chat message
+
         res.status(201).json({
 
             success: true,
@@ -82,7 +83,15 @@ const getMessages = async (req, res) => {
 
     try {
 
-        const messages = await Message.findAll();
+        const messages = await Message.findAll({
+            include: [{
+                model: User,
+                attributes: ["id", "name"],
+                required: true
+            }],
+
+            order: [["createdAt", "ASC"]]
+        });
 
         res.status(200).json(messages);
 

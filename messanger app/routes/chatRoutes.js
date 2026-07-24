@@ -1,19 +1,26 @@
 const express = require("express");
 
-const router = express.Router();
-
 const chatController = require("../controllers/chatController");
 
 const authMiddleware = require("../middlewares/authMiddleware");
 
-router.get("/chatpage", chatController.getChatPage);
+module.exports = (io) => {
 
-// Get All Messages
-router.get("/message", authMiddleware.authenticate, chatController.getMessages);
+    const router = express.Router();
+
+    router.get("/chatpage", chatController.getChatPage);
+
+    // Get All Messages
+    router.get("/message", authMiddleware.authenticate, chatController.getMessages);
 
 
 
-// Save Message
-router.post("/message", authMiddleware.authenticate, chatController.sendMessage);
+    // Save Message
+    router.post("/message", authMiddleware.authenticate, 
+        (req, res) => {
+        chatController.sendMessage(req, res, io)
+    });
 
-module.exports = router;
+    return router;
+};
+
